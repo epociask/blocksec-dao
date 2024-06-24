@@ -50,8 +50,7 @@ module.exports = async ({ deployments }) => {
     const chainId = network.config.chainId
     const tokenToBeMinted = networkConfig[chainId]["tokenToBeMinted"]
 
-
-    await deployLogError("SimpleCoin", {
+    await deployLogError("BlockSecToken", {
         from: deployer.address,
         args: [tokenToBeMinted],
         // maxPriorityFeePerGas to instruct hardhat to use EIP-1559 tx format
@@ -59,20 +58,5 @@ module.exports = async ({ deployments }) => {
         log: true,
     })
 
-    await deployLogError("FilecoinMarketConsumer", {
-        from: deployer.address,
-        args: [],
-        // maxPriorityFeePerGas to instruct hardhat to use EIP-1559 tx format
-        maxPriorityFeePerGas: priorityFee,
-        log: true,
-    })
-
-    await deployLogError("DealRewarder", {
-        from: deployer.address,
-        args: [],
-        // maxPriorityFeePerGas to instruct hardhat to use EIP-1559 tx format
-        maxPriorityFeePerGas: priorityFee,
-        log: true,
-    })
 }
 
