@@ -7,11 +7,12 @@ import {getFieldContent} from '@utils/form'
 import Loader from "@shared/atoms/Loader";
 import Button from "@shared/atoms/Button";
 import lighthouse from "@lighthouse-web3/sdk";
-import {companyDaoAbi, bountyAbi, bountyAddress} from "../../../../app.config";
+import {companyDaoABI, bountyABI, bountyFactoryABI} from '@utils/abi';
 import {useWeb3} from "@context/Web3";
 import {ethers} from "ethers";
 import {sleep} from "@utils/index";
 import {FormPublishData} from "../_types";
+import {array} from "yup";
 
 export default function MetadataFields(): ReactElement {
     const {accountId, web3, web3Loading, web3Provider} = useWeb3()
@@ -29,42 +30,48 @@ export default function MetadataFields(): ReactElement {
         const signer = provider.getSigner();
         const publicKey = (await signer.getAddress()).toLowerCase();
         const messageRequested = (await lighthouse.getAuthMessage(publicKey)).data.message;
+        console.log("signer", signer, publicKey, await lighthouse.getAuthMessage(publicKey));
         const signedMessage = await signer.signMessage(
             messageRequested
         );
-        return({publicKey: publicKey, signedMessage: signedMessage});
+        // return({publicKey: publicKey, signedMessage: signedMessage});
     }
 
     const deploy = async(e) =>{
 
         await sleep(2000);
 
-        let contract = new web3.eth.Contract(companyDaoAbi, "0x540627043EDaD520DbACE3FaF982ec553097275E", {
+        let contract = new web3.eth.Contract(companyDaoABI, "0xae385C058c3c4199632B14019153D2430019fe14", {
             from: accountId
         });
 
         const result = await contract.methods.addressOfCompany().call();
-        const {publicKey: publicKey1, signedMessage: signedMessage1} = await signAuthMessage();
+        await signAuthMessage();
+        // const {publicKey: publicKey1, signedMessage: signedMessage1} = await signAuthMessage();
 
         // // Push file to lighthouse node
-        const output = await lighthouse.uploadEncrypted(e, publicKey1,"372a16df-8fce-4b74-9a08-74689c2a50b0", signedMessage1);
-        console.log("Company A", result);
+        // const output = await lighthouse.uploadEncrypted(e, publicKey1,"372a16df-8fce-4b74-9a08-74689c2a50b0", signedMessage1);
+        // console.log("Company A", result);
+        //
+        // const {publicKey, signedMessage} = await signAuthMessage();
+        // const publicKeyUserB = [result];
+        // const res = await lighthouse.shareFile(
+        //     publicKey,
+        //     publicKeyUserB,
+        //     output.data.Hash,
+        //     signedMessage
+        // );
+        //
+        // contract = new web3.eth.Contract(bountyABI, window.location.search.replace("?address=", ""), {
+        //     from: accountId
+        // });
+        //
+        // let submitRes = await contract.methods.submitVulnerability(accountId, output.data.Hash, 123).send();
+        // console.log(submitRes, values)
+        //
+        // alert("Vulnerability Submitted");
+        // window.location.reload();
 
-        const {publicKey, signedMessage} = await signAuthMessage();
-        const publicKeyUserB = [result];
-        const res = await lighthouse.shareFile(
-            publicKey,
-            publicKeyUserB,
-            output.data.Hash,
-            signedMessage
-        );
-
-        contract = new web3.eth.Contract(bountyAbi, bountyAddress[0], {
-            from: accountId
-        });
-
-        let submitRes = await contract.methods.submitVulnerability(accountId, output.data.Hash, 123).send();
-        console.log(submitRes, values)
     }
 
     return (

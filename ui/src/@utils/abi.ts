@@ -311,6 +311,53 @@ export const bountyABI: AbiItem[] = [
 	},
 	{
 		"inputs": [],
+		"name": "getAllSubmissions",
+		"outputs": [
+			{
+				"components": [
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "whiteHat",
+								"type": "address"
+							},
+							{
+								"internalType": "string",
+								"name": "vulnStorageID",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "timeStamp",
+								"type": "uint256"
+							},
+							{
+								"internalType": "enum Core.SubmissionStatus",
+								"name": "status",
+								"type": "uint8"
+							}
+						],
+						"internalType": "struct Core.SubmissionMetaData",
+						"name": "metaData",
+						"type": "tuple"
+					},
+					{
+						"internalType": "bool",
+						"name": "isValue",
+						"type": "bool"
+					}
+				],
+				"internalType": "struct Core.Submission[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
 		"name": "getStatus",
 		"outputs": [
 			{
@@ -628,25 +675,6 @@ export const bountyABI: AbiItem[] = [
 
 export const bountyFactoryABI: AbiItem[] = [
 	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "previousOwner",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "OwnershipTransferred",
-		"type": "event"
-	},
-	{
 		"inputs": [
 			{
 				"internalType": "address",
@@ -690,17 +718,23 @@ export const bountyFactoryABI: AbiItem[] = [
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
+		"anonymous": false,
+		"inputs": [
 			{
+				"indexed": true,
 				"internalType": "address",
-				"name": "",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
 				"type": "address"
 			}
 		],
-		"stateMutability": "view",
-		"type": "function"
+		"name": "OwnershipTransferred",
+		"type": "event"
 	},
 	{
 		"inputs": [],
@@ -720,6 +754,32 @@ export const bountyFactoryABI: AbiItem[] = [
 		"name": "transferOwnership",
 		"outputs": [],
 		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAllBounties",
+		"outputs": [
+			{
+				"internalType": "contract Bounty[]",
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	}
 ];
@@ -921,7 +981,7 @@ export const companyDaoABI: AbiItem[] = [
 		"stateMutability": "nonpayable",
 		"type": "function"
 	}
-]
+];
 
 
 export const companyFactoryDaoABI: AbiItem[] = [
@@ -960,6 +1020,11 @@ export const companyFactoryDaoABI: AbiItem[] = [
 				"internalType": "address",
 				"name": "companyWalletAddress",
 				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "hackerSBT",
+				"type": "address"
 			}
 		],
 		"name": "createCompanyDao",
@@ -970,6 +1035,19 @@ export const companyFactoryDaoABI: AbiItem[] = [
 	{
 		"inputs": [],
 		"name": "getCompanyDaos",
+		"outputs": [
+			{
+				"internalType": "contract CompanyDao[]",
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getMyCompanyDaos",
 		"outputs": [
 			{
 				"internalType": "contract CompanyDao[]",

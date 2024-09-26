@@ -44,6 +44,7 @@ contract Bounty is Ownable {
     string public description;
 
     mapping(bytes32 => Core.Submission) public submissions;
+    Core.Submission[] submissionsArray;
 
     // Initialize contract relevant bounty data fields
     constructor(address bountyHost_, address tokenAddress_, uint256 endTimeStamp_,
@@ -110,6 +111,7 @@ contract Bounty is Ownable {
 
         submissions[id] = Core.Submission(metaData_, true);
         submissionCount += 1;
+        submissionsArray.push(Core.Submission(metaData_, true));
 
         return id;
     }
@@ -117,6 +119,11 @@ contract Bounty is Ownable {
     function processSubmission(bytes32 id, Core.SubmissionStatus response) public onlyOwner {
         // TODO - Add challenge deadline logic
         submissions[id].metaData.status = response;
+        for (uint i = 0; i < submissionsArray.length; i++) {
+            if (keccak256(abi.encodePacked(submissionsArray[i].metaData.vulnStorageID)) == keccak256(abi.encodePacked(submissions[id].metaData.vulnStorageID))) {
+                submissionsArray[i].metaData.status = response;
+            }
+        }
     }
 
     function getSubmission(address beneficiary, bytes32 storageID) public returns (Core.SubmissionMetaData memory) {
@@ -127,6 +134,10 @@ contract Bounty is Ownable {
         }
 
         return submissions[id].metaData;
+    }
+
+    function getAllSubmissions() public view returns (Core.Submission[] memory){
+        return submissionsArray;
     }
 
     function setTitle(string memory title_) public {

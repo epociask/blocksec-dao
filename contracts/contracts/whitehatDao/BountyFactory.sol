@@ -7,7 +7,7 @@ import "./Bounty.sol";
 
 contract BountyFactory is Ownable {
 
-    Bounty[] bountiesCreated;
+    Bounty[] public bountiesCreated;
 
     function addNewBounty(address bountyHost_, address tokenAddress_, uint256 endTimeStamp_,
         string memory metaDataID_, uint256 maxSubmissions_, string memory title_, string memory description_) public {

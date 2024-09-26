@@ -1,4 +1,4 @@
-import React, {ChangeEvent, ReactElement, useState} from 'react'
+import React, {ChangeEvent, ReactElement, useEffect, useState} from 'react'
 import Link from 'next/link'
 import loadable from '@loadable/component'
 import Logo from '@shared/atoms/Logo'
@@ -13,9 +13,15 @@ import Loader from "@shared/atoms/Loader";
 import {useWeb3} from "@context/Web3";
 import {UserRole, UserRoleTitle} from 'src/@types/user';
 
-import { auditorDaoABI, bountyFactoryABI, companyFactoryDaoABI, sbtABI } from '@utils/abi';
-import {auditorDAOAddresses, bountyFactoryAddress, companyFactoryDaoAddress} from "../../../app.config";
+import {auditorDaoABI, bountyFactoryABI, companyFactoryDaoABI, sbtABI} from '@utils/abi';
+import {
+    auditorDAOAddresses,
+    bountyFactoryAddress,
+    companyFactoryDaoAddress,
+    hackerSolBoundAddress
+} from "../../../app.config";
 import Alert from "@shared/atoms/Alert";
+import {sleep} from "@utils/index";
 
 const Wallet = loadable(() => import('./Wallet'))
 
@@ -54,7 +60,7 @@ export default function Menu(): ReactElement {
     const [selectedRole, setSelectedRole] = useState(UserRoleTitle.Unknown);
     const [bugBountyDescription, setBugBountyDescription] = useState("")
     const [isAlert, setIsAlert] = useState({})
-    const { accountId, web3 } = useWeb3();
+    const {accountId, web3, web3Loading, web3Provider} = useWeb3()
 
     async function getDappRole() {
         console.log("Getting user dAPP role");
@@ -72,10 +78,10 @@ export default function Menu(): ReactElement {
 
         try {
             let role: string = await sbtContract.methods.getUserRole(accountId).call();
-            console.log(UserRole.Hacker);
-            
+
             let intRole: number = parseInt(role, 10);
-            
+            intRole = 1;
+
             switch (intRole) {
                 case UserRole.Hacker:
                     setUserRole(UserRoleTitle.Hacker);
@@ -88,16 +94,14 @@ export default function Menu(): ReactElement {
                 default: // Captures NaN as well
                     setUserRole(UserRoleTitle.Unknown);
 
-            };
+            }
             console.log("Set User role");
 
         } catch(e) {
             console.log("User role not set yet");
-            setUserRole(UserRole.Unknown);
+            setUserRole(UserRoleTitle.Unknown);
 
         }
-
-
     }
 
 
@@ -142,8 +146,8 @@ export default function Menu(): ReactElement {
 
         console.log("Address", selectedCompany);
         try{
-            const resCreate = await contract.methods.addNewBounty(selectedCompany, selectedCompany, Math.floor(Date.now()),
-                "testtttttttesttttttttesttttttt", 1223, bugBountyTitle, bugBountyDescription).send({from: accountId});
+            const resCreate = await contract.methods.addNewBounty(selectedCompany, selectedCompany, Math.floor(Date.now() + 3600),
+                "testtttttttesttttttttesttttttt", 122, bugBountyTitle, bugBountyDescription).send({from: accountId});
 
             console.log(resCreate);
             setIsAlert({
@@ -159,6 +163,8 @@ export default function Menu(): ReactElement {
             });
         }
         setIsDialogLoaded(true);
+        await sleep(2000);
+        window.location.reload();
     }
 
     async function getContractAddress(){
@@ -174,8 +180,15 @@ export default function Menu(): ReactElement {
 
     }
 
+    useEffect(() => {
+
+        if (!web3Loading && accountId){
+            getDappRole();
+        }
+    }, [web3, web3Loading])
+
     return (
-        <nav className={styles.menu} onMouseEnter={() => getDappRole()}>
+        <nav className={styles.menu}>
             <Link href="/">
                 <a className={styles.logo}>
                     <Logo noWordmark/>
@@ -184,13 +197,13 @@ export default function Menu(): ReactElement {
             </Link>
 
             <ul className={styles.navigation}>
-                {siteContent?.menu.map((item: MenuItem) => (
-                    <li key={item.name}>
-                        <MenuLink item={item}/>
-                    </li>
-                ))}
+                {/*{siteContent?.menu.map((item: MenuItem) => (*/}
+                {/*    <li key={item.name}>*/}
+                {/*        <MenuLink item={item}/>*/}
+                {/*    </li>*/}
+                {/*))}*/}
 
-                <li key="123">
+                {accountId && (userRole === UserRoleTitle.Company) ? <li key="bug-bounty">
                     <a className={styles.link} onClick={() => getContractAddress()}>
                         Create Bug Bounty
                     </a>
@@ -207,51 +220,52 @@ export default function Menu(): ReactElement {
                             {isAlert.text ? <Alert text={isAlert.text} state={isAlert.type} /> : ""}
                             <br/><br/>
                             {!isDialogLoaded ? <Loader /> : <form>
-                                    <Input
-                                        name="company"
-                                        label="Company Dao"
-                                        help="The Company DAO you want to create the bounty under"
-                                        type="select"
-                                        value={selectedCompany}
-                                        options={companyDaoAddresses}
-                                        onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                                            setSelectedCompany(e.target.value)
-                                        }
-                                        size="small"
-                                    />
+                                <Input
+                                    name="company"
+                                    label="Company Dao"
+                                    help="The Company DAO you want to create the bounty under"
+                                    type="select"
+                                    value={selectedCompany}
+                                    options={companyDaoAddresses}
+                                    onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                                        setSelectedCompany(e.target.value)
+                                    }
+                                    size="small"
+                                />
 
-                                    <Input
-                                        name="title"
-                                        label="Bug Bounty program"
-                                        help="The title of the Bug Bounty Program"
-                                        type="text"
-                                        value={bugBountyTitle}
-                                        onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                                            setBugBountyTitle(e.target.value)
-                                        }
-                                        size="small"
-                                    />
-                                    <Input
-                                        name="description"
-                                        label="Bug Bounty program description"
-                                        help="The Description of the Bug Bounty Program"
-                                        type="textarea"
-                                        value={bugBountyDescription}
-                                        onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                                            setBugBountyDescription(e.target.value)
-                                        }
-                                        size="small"
-                                    />
+                                <Input
+                                    name="title"
+                                    label="Bug Bounty program"
+                                    help="The title of the Bug Bounty Program"
+                                    type="text"
+                                    value={bugBountyTitle}
+                                    onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                                        setBugBountyTitle(e.target.value)
+                                    }
+                                    size="small"
+                                />
+                                <Input
+                                    name="description"
+                                    label="Bug Bounty program description"
+                                    help="The Description of the Bug Bounty Program"
+                                    type="textarea"
+                                    value={bugBountyDescription}
+                                    onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                                        setBugBountyDescription(e.target.value)
+                                    }
+                                    size="small"
+                                />
 
-                                    <Button style="text" size="small" onClick={(e) => submitDetails(e)}>
-                                        Submit New Program
-                                    </Button>
-                                </form>
+                                <Button style="text" size="small" onClick={(e) => submitDetails(e)}>
+                                    Submit New Program
+                                </Button>
+                            </form>
                             }
                         </div>
                     </Modal>
-                </li>
-                <li key="124">
+                </li> : <></>}
+
+                {accountId && (userRole === UserRoleTitle.Unknown) ? <li key="signup">
                     <a className={styles.link} onClick={() => setIsSignupOpen(true)}>
                         Signup!
                     </a>
@@ -260,50 +274,52 @@ export default function Menu(): ReactElement {
                         isOpen={isSignupOpen}
                         onToggleModal={() => setIsSignupOpen(false)}
                     >
-                       
-                    <div className={styles.meta}>
-                    {isAlert.text ? <Alert text={isAlert.text} state={isAlert.type} /> : ""}
 
-                    <br/><br/>
-                    <p> Please specify the role which you'd like an SBT minted for and press Submit</p>
-                    {!isDialogLoaded ? <Loader /> : <form>
-                    <Input
-                                name="auditor Dao"
-                                label="Auditor Dao"
-                                help="The Auditor DAO you want to register under"
-                                type="select"
-                                value={selectedDao}
-                                options={["select"].concat(auditorDAOAddresses)}
-                                onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                                    setSelectedDao(e.target.value)
-                                }
-                                size="small"
-                            />
-                            <Input
-                                name="role"
-                                label="Role"
-                                help="The Role which you are applying for"
-                                type="select"
-                                value={selectedRole}
-                                options={["select", "hacker"]} // TODO - Pass in other roles
-                                onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                                    setSelectedRole(e.target.value)
-                                }
-                                size="small"
-                            />
-                            <Button style="text" size="small" onClick={(e) => submitRoleSubmission(e)}>
-                                Submit
-                            </Button>
-                        </form>
-                    }
-                    </div>
+                        <div className={styles.meta}>
+                            {isAlert.text ? <Alert text={isAlert.text} state={isAlert.type} /> : ""}
+
+                            <br/><br/>
+                            <p> Please specify the role which you'd like an SBT minted for and press Submit</p>
+                            {!isDialogLoaded ? <Loader /> : <form>
+                                <Input
+                                    name="auditor Dao"
+                                    label="Auditor Dao"
+                                    help="The Auditor DAO you want to register under"
+                                    type="select"
+                                    value={selectedDao}
+                                    options={["select"].concat(auditorDAOAddresses)}
+                                    onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                                        setSelectedDao(e.target.value)
+                                    }
+                                    size="small"
+                                />
+                                <Input
+                                    name="role"
+                                    label="Role"
+                                    help="The Role which you are applying for"
+                                    type="select"
+                                    value={selectedRole}
+                                    options={["select", "hacker"]} // TODO - Pass in other roles
+                                    onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                                        setSelectedRole(e.target.value)
+                                    }
+                                    size="small"
+                                />
+                                <Button style="text" size="small" onClick={(e) => submitRoleSubmission(e)}>
+                                    Submit
+                                </Button>
+                            </form>
+                            }
+                        </div>
                     </Modal>
-                </li>
-                <li key="125">
+                </li> : <></>}
+                {userRole !== UserRoleTitle.Unknown ?
+                    <li key="125">
                     <a className={styles.link}>
                         [{userRole}]
                     </a>
-                </li>
+                </li> : <></>}
+
             </ul>
 
             <div className={styles.actions}>

@@ -12,6 +12,7 @@ library Lib {
 interface IHackerSBT {
     function balanceOf(address owner) external view returns (uint256);
     function safeMint(address to, Lib.Role role) external;
+    function safeMintCompany(address to) external;
 }
 
 contract HackerSoulBound is ERC721, Ownable {
@@ -47,7 +48,17 @@ contract HackerSoulBound is ERC721, Ownable {
         entries[to] = entry;
     }
 
+    function safeMintCompany(address to) external {
+        require(to != address(0), "Cannot mint to NULL address");
+        require(!entries[to].isValue, "Cannot mint to account with existing SBT entry");
 
+        uint256 _tokenID = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
+        _safeMint(to, _tokenID);
+
+        SBTEntry memory entry = SBTEntry(true, Lib.Role.Company, _tokenID);
+        entries[to] = entry;
+    }
 
     function getReputation(uint256 tokenId) public view returns (Lib.Reputation) {
         // TODO - Build derivation logic

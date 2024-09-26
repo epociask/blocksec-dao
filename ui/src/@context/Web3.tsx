@@ -9,7 +9,9 @@ import React, {
 } from 'react'
 import Web3 from 'web3'
 import Web3Modal, { getProviderInfo, IProviderInfo } from 'web3modal'
-import { infuraProjectId as infuraId } from '../../app.config'
+import {infuraProjectId as infuraId, hackerSolBoundAddress, companyFactoryDaoAddress} from '../../app.config'
+import { hackerSolBoundAbi} from '@utils/abi';
+
 import WalletConnectProvider from '@walletconnect/web3-provider'
 import { LoggerInstance } from '@oceanprotocol/lib'
 import { isBrowser } from '@utils/index'
@@ -24,6 +26,7 @@ import { useMarketMetadata } from './MarketMetadata'
 import { getTokenBalance } from '@utils/web3'
 import { getOpcsApprovedTokens } from '@utils/subgraph'
 import {ethers} from "ethers";
+import {companyFactoryDaoABI} from "@utils/abi";
 
 
 interface Web3ProviderValue {
@@ -150,6 +153,7 @@ function Web3Provider({ children }: { children: ReactNode }): ReactElement {
       const accountId = (await web3.eth.getAccounts())[0]
       setAccountId(accountId)
       LoggerInstance.log('[web3] account id', accountId)
+
     } catch (error) {
       LoggerInstance.error('[web3] Error: ', error.message)
     } finally {
